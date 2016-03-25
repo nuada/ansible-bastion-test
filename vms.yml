@@ -1,0 +1,18 @@
+---
+- name: setup VMs
+  hosts: cloud-vm
+  connection: local
+  tasks:
+  - name: create and run VMs
+    cs_instance:
+      name: "{{ inventory_hostname_short }}"
+      template: "{{ template }}"
+      service_offering: "{{ service_offering }}"
+      disk_offering: "{{ disk_offering }}"
+      ssh_key: default_key
+      state: started
+    register: vm
+  - name: assing IP to the inventory
+    set_fact: ansible_ssh_host="{{ vm.default_ip }}"
+  - name: show VM IP
+    debug: msg="VM {{ inventory_hostname }} {{ vm.default_ip }}"
