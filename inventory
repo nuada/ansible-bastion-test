@@ -1,3 +1,6 @@
+[bastion]
+bastion
+
 [cloud-vm:children]
 test
 

@@ -1,0 +1,5 @@
+---
+service_offering: 1cpu/4gb_ardigen_linux
+disk_offering: 10gb_ardigen
+template: trusty-server-cloudimg-amd64
+public_ip: 46.174.183.130

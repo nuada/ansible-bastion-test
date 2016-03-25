@@ -1,50 +1,32 @@
 ---
-- name: test cloud setup
+- name: setup cloud
   hosts: localhost
   connection: local
   tasks:
   - name: upload ssh public key
     cs_sshkeypair:
       name: default_key
-      public_key: "{{ lookup('file', '~/.ssh/polcom-test/id_rsa.pub') }}"
+      public_key: "{{ lookup('file', 'id_rsa.pub') }}"
 
-  - name: ensure default security group exists
-    cs_securitygroup:
-      name: default
-
-  # - name: add inbound SSH to security group default
-  #   cs_securitygroup_rule:
-  #     security_group: default
-  #     start_port: "{{ item }}"
-  #     end_port: "{{ item }}"
-  #   with_items:
-  #     - 22
-
-  # - name: setup ubuntu 14.04 template
-  #   cs_template:
-  #     name: trusty-server-cloudimg
-  #     url: "https://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64.ova"
-  #     hypervisor: XenServer
-  #     format: OVA
-  #     os_type: Ubuntu 14.04 (64-bit)
-  #     is_public: no
-
-- name: install VMs in the cloud
-  hosts: cloud-vm
+- name: setup bastion host
+  hosts: bastion
   connection: local
   tasks:
-  - name: create and run VMs on CloudStack
+  - name: create and run bastion VM
     cs_instance:
       name: "{{ inventory_hostname_short }}"
-      template: "CentOS 5.6(64-bit) no GUI (XenServer)"
-      service_offering: 4cpu_4gb_polcom_linux
-    #   security_groups: default
+      template: "{{ template }}"
+      service_offering: 1cpu/1gb_ardigen_linux
       ssh_key: default_key
       state: started
-    register: vm
-
-  - name: show VM IP
-    debug: msg="VM {{ inventory_hostname }} {{ vm.default_ip }}"
-
+  - name: setup port forwarding
+    cs_portforward:
+      ip_address: "{{ public_ip }}"
+      vm: "{{ inventory_hostname_short }}"
+      public_port: 22
+      private_port: 22
+      open_firewall: true
   - name: assing IP to the inventory
-    set_fact: ansible_ssh_host={{ vm.default_ip }}
+    set_fact: ansible_ssh_host="{{ public_ip }}"
+  - name: show VM IP
+    debug: msg="VM {{ inventory_hostname }} "{{ public_ip }}""
